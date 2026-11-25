@@ -1,0 +1,30 @@
+# Local sharded MongoDB cluster for the sharding demo (bonus).
+# 1 config server replica set + 2 shard replica sets + 1 mongos router.
+# Single-node replica sets keep it light enough for a Codespace;
+# production would use 3 members per replica set.
+services:
+  cfg1:
+    image: mongo:8.0
+    container_name: cfg1
+    command: mongod --configsvr --replSet cfgRS --port 27017 --bind_ip_all --wiredTigerCacheSizeGB 0.25
+    ports: ["27101:27017"]
+
+  shard1:
+    image: mongo:8.0
+    container_name: shard1
+    command: mongod --shardsvr --replSet shard1RS --port 27017 --bind_ip_all --wiredTigerCacheSizeGB 0.25
+    ports: ["27102:27017"]
+
+  shard2:
+    image: mongo:8.0
+    container_name: shard2
+    command: mongod --shardsvr --replSet shard2RS --port 27017 --bind_ip_all --wiredTigerCacheSizeGB 0.25
+    ports: ["27103:27017"]
+
+  mongos:
+    image: mongo:8.0
+    container_name: mongos
+    command: mongos --configdb cfgRS/cfg1:27017 --port 27017 --bind_ip_all
+    ports: ["27100:27017"]
+    depends_on: [cfg1, shard1, shard2]
+    restart: unless-stopped   # keeps retrying until the config server is initialised
