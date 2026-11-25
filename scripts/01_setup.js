@@ -9,7 +9,11 @@ const DB_NAME = "tgts_tracker";
 const tgts = db.getSiblingDB(DB_NAME);
 
 // Single source of truth for dashboard field codes (also used by the API)
-const FIELD_CODES = Object.keys(JSON.parse(fs.readFileSync("config/field_codes.json", "utf8")));
+const LABELS = JSON.parse(fs.readFileSync("config/field_codes.json", "utf8"));
+const FIELD_CODES = Object.keys(LABELS);
+// Supported UI languages = every language that has labels in field_codes.json.
+// Adding a language there (e.g. "zh") and re-running this script extends the validator (Q9).
+const LANGUAGES = [...new Set(Object.values(LABELS).flatMap(l => Object.keys(l)))];
 
 // accountNumber is the _id everywhere: "TGTS-" + 6 digits, e.g. TGTS-000001
 const ACCOUNT_ID = { bsonType: "string", pattern: "^TGTS-[0-9]{6}$",
@@ -75,8 +79,8 @@ const validators = {
         fontName: { bsonType: "string", minLength: 1 },
         fontSize: { bsonType: ["int", "long", "double"], minimum: 8, maximum: 32 },
         colorScheme: { enum: ["light", "dark", "high-contrast"] },
-        preferredLanguage: { enum: ["en", "ms"],
-                             description: "ISO 639-1 code; extended in the Q9 demo" }
+        preferredLanguage: { enum: LANGUAGES,
+                             description: "ISO 639-1 code; allowed: " + LANGUAGES.join(", ") }
       }
     }
   }
@@ -113,3 +117,4 @@ for (const name of Object.keys(validators)) {
 
 print(`\nDone. Database '${DB_NAME}' is ready with ${Object.keys(validators).length} collections.`);
 print("Allowed dashboard field codes: " + FIELD_CODES.join(", "));
+print("Supported preferredLanguage values: " + LANGUAGES.join(", "));

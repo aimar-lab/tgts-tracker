@@ -1,12 +1,12 @@
 {
-  "SHIP_STATUS":         { "en": "Shipment Status",     "ms": "Status Penghantaran" },
-  "CURRENT_LOCATION":    { "en": "Current Location",    "ms": "Lokasi Semasa" },
-  "ETA":                 { "en": "Estimated Arrival",   "ms": "Anggaran Ketibaan" },
-  "LAST_SCAN":           { "en": "Last Scan",           "ms": "Imbasan Terakhir" },
-  "ORIGIN":              { "en": "Origin",              "ms": "Asal" },
-  "DESTINATION":         { "en": "Destination",         "ms": "Destinasi" },
-  "CARRIER":             { "en": "Carrier",             "ms": "Syarikat Penghantar" },
-  "WEIGHT":              { "en": "Weight",              "ms": "Berat" },
-  "PROOF_OF_DELIVERY":   { "en": "Proof of Delivery",   "ms": "Bukti Penghantaran" },
-  "DELIVERY_EXCEPTIONS": { "en": "Delivery Exceptions", "ms": "Masalah Penghantaran" }
+  "SHIP_STATUS":         { "en": "Shipment Status", "ms": "Status Penghantaran", "zh": "货运状态" },
+  "CURRENT_LOCATION":    { "en": "Current Location", "ms": "Lokasi Semasa", "zh": "当前位置" },
+  "ETA":                 { "en": "Estimated Arrival", "ms": "Anggaran Ketibaan", "zh": "预计到达时间" },
+  "LAST_SCAN":           { "en": "Last Scan", "ms": "Imbasan Terakhir", "zh": "最后扫描" },
+  "ORIGIN":              { "en": "Origin", "ms": "Asal", "zh": "始发地" },
+  "DESTINATION":         { "en": "Destination", "ms": "Destinasi", "zh": "目的地" },
+  "CARRIER":             { "en": "Carrier", "ms": "Syarikat Penghantar", "zh": "承运商" },
+  "WEIGHT":              { "en": "Weight", "ms": "Berat", "zh": "重量" },
+  "PROOF_OF_DELIVERY":   { "en": "Proof of Delivery", "ms": "Bukti Penghantaran", "zh": "签收证明" },
+  "DELIVERY_EXCEPTIONS": { "en": "Delivery Exceptions", "ms": "Masalah Penghantaran", "zh": "配送异常" }
 }
