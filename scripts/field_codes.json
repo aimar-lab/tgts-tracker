@@ -1,0 +1,12 @@
+{
+  "SHIP_STATUS":         { "en": "Shipment Status",     "ms": "Status Penghantaran" },
+  "CURRENT_LOCATION":    { "en": "Current Location",    "ms": "Lokasi Semasa" },
+  "ETA":                 { "en": "Estimated Arrival",   "ms": "Anggaran Ketibaan" },
+  "LAST_SCAN":           { "en": "Last Scan",           "ms": "Imbasan Terakhir" },
+  "ORIGIN":              { "en": "Origin",              "ms": "Asal" },
+  "DESTINATION":         { "en": "Destination",         "ms": "Destinasi" },
+  "CARRIER":             { "en": "Carrier",             "ms": "Syarikat Penghantar" },
+  "WEIGHT":              { "en": "Weight",              "ms": "Berat" },
+  "PROOF_OF_DELIVERY":   { "en": "Proof of Delivery",   "ms": "Bukti Penghantaran" },
+  "DELIVERY_EXCEPTIONS": { "en": "Delivery Exceptions", "ms": "Masalah Penghantaran" }
+}
