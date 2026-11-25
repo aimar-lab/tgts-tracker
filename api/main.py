@@ -10,6 +10,7 @@ Endpoints
     GET    /{collection}/{account_id}   point read by _id
     DELETE /{collection}/{account_id}   delete by _id
     GET    /profile/{account_id}        merged profile (customer + dashboard + alerts + UI config)
+    GET    /reports/dashboard-summary   aggregation: dashboard labels + alert count per account
 """
 import json
 import os
@@ -17,7 +18,7 @@ from datetime import datetime
 from pathlib import Path as FsPath
 from typing import Literal, Optional
 
-from fastapi import FastAPI, HTTPException, Path, Response
+from fastapi import FastAPI, HTTPException, Path, Query, Response
 from pydantic import BaseModel, Field
 from pymongo import MongoClient
 from pymongo.errors import WriteError
@@ -188,6 +189,52 @@ def get_profile(account_id: str = AccountId):
     profile["dashboardLabels"] = [FIELD_LABELS.get(code, {}).get(lang) or FIELD_LABELS.get(code, {}).get("en", code)
                                   for code in profile["dashboard"]]
     return profile
+
+
+# ------------------------------------------------------------------ aggregation report
+def label_for(code_expr, lang_expr):
+    """Aggregation expression: field code -> label in lang, falling back to English, then the code."""
+    return {"$let": {
+        "vars": {"l": {"$getField": {"field": code_expr, "input": {"$literal": FIELD_LABELS}}}},
+        "in": {"$ifNull": [{"$getField": {"field": lang_expr, "input": "$$l"}},
+                           {"$getField": {"field": "en", "input": "$$l"}},
+                           code_expr]},
+    }}
+
+
+@app.get("/reports/dashboard-summary", tags=["reports"])
+def dashboard_summary(account_id: Optional[str] = Query(None, pattern=ACCOUNT_PATTERN,
+                                                         description="Optional: one account only")):
+    """
+    Aggregation pipeline: dashboard field codes -> labels in each user's preferredLanguage,
+    plus the number of alert recipients (alertCount) per account.
+    """
+    pipeline = [{"$match": {"_id": account_id}}] if account_id else []
+    pipeline += [
+        {"$lookup": {"from": "dashboards", "localField": "_id", "foreignField": "_id", "as": "_dash"}},
+        {"$lookup": {"from": "alerts",     "localField": "_id", "foreignField": "_id", "as": "_alerts"}},
+        {"$lookup": {"from": "ui_configs", "localField": "_id", "foreignField": "_id", "as": "_ui"}},
+        {"$set": {
+            "_fields": {"$ifNull": [{"$first": "$_dash.fields"}, []]},
+            "_lang": {"$ifNull": [{"$first": "$_ui.preferredLanguage"}, "en"]},
+            "_alert": {"$first": "$_alerts"},
+        }},
+        {"$project": {
+            "_id": 0,
+            "accountNumber": "$_id",
+            "customer": "$name",
+            "language": "$_lang",
+            "dashboardLabels": {"$map": {"input": "$_fields", "as": "c", "in": label_for("$$c", "$_lang")}},
+            "fieldCount": {"$size": "$_fields"},
+            "alertCount": {"$size": {"$ifNull": ["$_alert.recipients", []]}},
+            "alertExpiresAt": "$_alert.expiresAt",
+        }},
+        {"$sort": {"accountNumber": 1}},
+    ]
+    rows = list(db.customers.aggregate(pipeline))
+    if account_id and not rows:
+        raise HTTPException(404, f"{account_id} not found")
+    return {"accounts": len(rows), "totalAlertRecipients": sum(r["alertCount"] for r in rows), "results": rows}
 
 
 @app.get("/", include_in_schema=False)

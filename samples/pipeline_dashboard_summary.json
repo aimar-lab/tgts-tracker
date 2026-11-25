@@ -1,0 +1,152 @@
+[
+  {
+    "$lookup": {
+      "from": "dashboards",
+      "localField": "_id",
+      "foreignField": "_id",
+      "as": "_dash"
+    }
+  },
+  {
+    "$lookup": {
+      "from": "alerts",
+      "localField": "_id",
+      "foreignField": "_id",
+      "as": "_alerts"
+    }
+  },
+  {
+    "$lookup": {
+      "from": "ui_configs",
+      "localField": "_id",
+      "foreignField": "_id",
+      "as": "_ui"
+    }
+  },
+  {
+    "$set": {
+      "_fields": {
+        "$ifNull": [
+          {
+            "$first": "$_dash.fields"
+          },
+          []
+        ]
+      },
+      "_lang": {
+        "$ifNull": [
+          {
+            "$first": "$_ui.preferredLanguage"
+          },
+          "en"
+        ]
+      },
+      "_alert": {
+        "$first": "$_alerts"
+      }
+    }
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "accountNumber": "$_id",
+      "customer": "$name",
+      "language": "$_lang",
+      "dashboardLabels": {
+        "$map": {
+          "input": "$_fields",
+          "as": "c",
+          "in": {
+            "$let": {
+              "vars": {
+                "l": {
+                  "$getField": {
+                    "field": "$$c",
+                    "input": {
+                      "$literal": {
+                        "SHIP_STATUS": {
+                          "en": "Shipment Status",
+                          "ms": "Status Penghantaran"
+                        },
+                        "CURRENT_LOCATION": {
+                          "en": "Current Location",
+                          "ms": "Lokasi Semasa"
+                        },
+                        "ETA": {
+                          "en": "Estimated Arrival",
+                          "ms": "Anggaran Ketibaan"
+                        },
+                        "LAST_SCAN": {
+                          "en": "Last Scan",
+                          "ms": "Imbasan Terakhir"
+                        },
+                        "ORIGIN": {
+                          "en": "Origin",
+                          "ms": "Asal"
+                        },
+                        "DESTINATION": {
+                          "en": "Destination",
+                          "ms": "Destinasi"
+                        },
+                        "CARRIER": {
+                          "en": "Carrier",
+                          "ms": "Syarikat Penghantar"
+                        },
+                        "WEIGHT": {
+                          "en": "Weight",
+                          "ms": "Berat"
+                        },
+                        "PROOF_OF_DELIVERY": {
+                          "en": "Proof of Delivery",
+                          "ms": "Bukti Penghantaran"
+                        },
+                        "DELIVERY_EXCEPTIONS": {
+                          "en": "Delivery Exceptions",
+                          "ms": "Masalah Penghantaran"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "in": {
+                "$ifNull": [
+                  {
+                    "$getField": {
+                      "field": "$_lang",
+                      "input": "$$l"
+                    }
+                  },
+                  {
+                    "$getField": {
+                      "field": "en",
+                      "input": "$$l"
+                    }
+                  },
+                  "$$c"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "fieldCount": {
+        "$size": "$_fields"
+      },
+      "alertCount": {
+        "$size": {
+          "$ifNull": [
+            "$_alert.recipients",
+            []
+          ]
+        }
+      },
+      "alertExpiresAt": "$_alert.expiresAt"
+    }
+  },
+  {
+    "$sort": {
+      "accountNumber": 1
+    }
+  }
+]
